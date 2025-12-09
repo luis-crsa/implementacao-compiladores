@@ -1,4 +1,3 @@
-# parser/ll1_parser.py
 from collections import deque
 
 class ParseError(Exception):

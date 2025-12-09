@@ -1,4 +1,3 @@
-# lexer.py
 import re
 from collections import namedtuple
 

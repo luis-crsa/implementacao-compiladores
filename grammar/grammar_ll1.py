@@ -6,7 +6,7 @@ GRAMMAR = {
         "FuncDecl","ParamList","ParamList_","Param",
         "VarDecl","MainDecl","Type",
         "Block","StmtList","StmtList_",
-        "Stmt","MatchedStmt","UnmatchedStmt",
+        "Stmt","MatchedStmt","UnmatchedStmt","ElsePart",
         "SimpleStmt","SimpleStmtTail",
         "ForInitExpr","ForUpdateExpr",
         "Chamada","ArgList","ArgList_",
@@ -34,36 +34,32 @@ GRAMMAR = {
 
     "productions": {
 
-        # Program
         "Program": [["DeclList"]],
-
-        # Declarations
         "DeclList": [["Decl","DeclList_"]],
         "DeclList_": [["Decl","DeclList_"], ["ε"]],
         "Decl": [["FuncDecl"], ["VarDecl"], ["MainDecl"]],
-
-        # Functions
+        
+        # Funções
         "FuncDecl": [["FUNCAO","ID","LPAREN","ParamList","RPAREN","Block"]],
         "ParamList": [["Param","ParamList_"], ["ε"]],
         "ParamList_": [["VIRGULA","Param","ParamList_"], ["ε"]],
         "Param": [["Type","ID"]],
-
-        # Variables and main
+        
+        # Variáveis e Main
         "VarDecl": [["Type","ID","PONTOEVIRG"]],
         "MainDecl": [["MAIN","Block"]],
         "Type": [["INTEIRO"], ["REAL"], ["BOOLEANO"], ["TEXTO"]],
-
-        # Block
+        
+        # Bloco e Lista de Comandos
         "Block": [["LBRACE","StmtList","RBRACE"]],
         "StmtList": [["Stmt","StmtList_"], ["ε"]],
         "StmtList_": [["Stmt","StmtList_"], ["ε"]],
-
-        # Statements
+        
+        # Stmt: Matched vs Unmatched (Gramática LL(1) para IF/ELSE)
         "Stmt": [["MatchedStmt"], ["UnmatchedStmt"]],
 
-        # MatchedStmt = if com else + demais statements
+        # MatchedStmt: Comandos fechados (não iniciados por SE)
         "MatchedStmt": [
-            ["SE","LPAREN","Expr","RPAREN","MatchedStmt","SENAO","MatchedStmt"],
             ["WHILE","LPAREN","Expr","RPAREN","MatchedStmt"],
             ["DO","Stmt","WHILE","LPAREN","Expr","RPAREN","PONTOEVIRG"],
             ["FOR","LPAREN","ForInitExpr","PONTOEVIRG","Expr","PONTOEVIRG","ForUpdateExpr","RPAREN","MatchedStmt"],
@@ -73,13 +69,18 @@ GRAMMAR = {
             ["VarDecl"]
         ],
 
-        # UnmatchedStmt = if sem else ou dangling else
+        # UnmatchedStmt: Comandos abertos (iniciados por SE)
         "UnmatchedStmt": [
-            ["SE","LPAREN","Expr","RPAREN","Stmt"],
-            ["SE","LPAREN","Expr","RPAREN","MatchedStmt","SENAO","UnmatchedStmt"]
+            ["SE", "LPAREN", "Expr", "RPAREN", "MatchedStmt", "ElsePart"]
         ],
 
-        # Simple statements
+        # ElsePart: Resolve o Dangling Else (SENAO vs ε)
+        "ElsePart": [
+            ["SENAO", "MatchedStmt"], 
+            ["ε"]                       
+        ],
+        
+        # Comandos Simples
         "SimpleStmt": [["ID","SimpleStmtTail"]],
         "SimpleStmtTail": [
             ["IGUAL","Expr"],
@@ -87,17 +88,13 @@ GRAMMAR = {
             ["DECR"],
             ["LPAREN","ArgList","RPAREN"]
         ],
-
-        # For expressions
         "ForInitExpr": [["SimpleStmt"], ["ε"]],
         "ForUpdateExpr": [["SimpleStmt"], ["ε"]],
-
-        # Function calls
         "Chamada": [["ID","LPAREN","ArgList","RPAREN"]],
         "ArgList": [["Expr","ArgList_"], ["ε"]],
         "ArgList_": [["VIRGULA","Expr","ArgList_"], ["ε"]],
-
-        # Expressions
+        
+        # Expressões (Precedência/Associatividade resolvidas)
         "Expr": [["ExprOr"]],
         "ExprOr": [["ExprAnd","ExprOr_"]],
         "ExprOr_": [["OU_LOGICO","ExprAnd","ExprOr_"], ["ε"]],

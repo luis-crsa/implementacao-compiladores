@@ -1,8 +1,7 @@
-# parser/firts_follow.py
-EPS = 'EPS'
+EPS = 'ε'
 
 def compute_first(productions, terminals, nonterminals):
-    # initialize
+    # Inicializa os conjuntos FIRST
     first = {A:set() for A in nonterminals}
     for t in terminals:
         first[t] = {t}
@@ -12,7 +11,6 @@ def compute_first(productions, terminals, nonterminals):
         changed = False
         for A in nonterminals:
             for rhs in productions.get(A, []):
-                # epsilon production
                 if rhs == []:
                     if EPS not in first[A]:
                         first[A].add(EPS); changed = True
@@ -30,13 +28,15 @@ def first_of_sequence(seq, first):
         if symbol == 'ε':
             result.add(EPS)
             continue
-        # symbol must be in first
+        
         if symbol not in first:
-            # unknown symbol — skip to avoid crash (defensive)
+            # Símbolo desconhecido, ignora
             continue
+            
         for x in first[symbol]:
             if x != EPS:
                 result.add(x)
+        
         if EPS not in first[symbol]:
             break
     else:
@@ -44,9 +44,11 @@ def first_of_sequence(seq, first):
     return result
 
 def compute_follow(productions, start_symbol, terminals, nonterminals, first):
+    # Inicializa os conjuntos FOLLOW
     follow = {A:set() for A in nonterminals}
     follow[start_symbol].add('EOF')
     changed = True
+    
     while changed:
         changed = False
         for A in nonterminals:
@@ -54,20 +56,27 @@ def compute_follow(productions, start_symbol, terminals, nonterminals, first):
                 for i, B in enumerate(rhs):
                     if B not in nonterminals:
                         continue
+                        
                     beta = rhs[i+1:]
+                    
                     if beta:
                         first_beta = first_of_sequence(beta, first)
                         without_eps = {x for x in first_beta if x != EPS}
+                        
+                        # Regra 1: FOLLOW(B) = FOLLOW(B) U (FIRST(beta) - {EPS})
                         before = len(follow[B])
                         follow[B].update(without_eps)
                         if len(follow[B]) != before:
                             changed = True
+                        
+                        # Regra 2: Se EPS in FIRST(beta), FOLLOW(B) = FOLLOW(B) U FOLLOW(A)
                         if EPS in first_beta:
                             before = len(follow[B])
                             follow[B].update(follow[A])
                             if len(follow[B]) != before:
                                 changed = True
                     else:
+                        # Regra 3: Se beta é vazio, FOLLOW(B) = FOLLOW(B) U FOLLOW(A)
                         before = len(follow[B])
                         follow[B].update(follow[A])
                         if len(follow[B]) != before:

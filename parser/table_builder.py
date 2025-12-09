@@ -1,4 +1,3 @@
-# parser/table_builder.py
 from parser.firts_follow import EPS, first_of_sequence
 
 def build_ll1_table(productions, terminals, nonterminals, first, follow):
