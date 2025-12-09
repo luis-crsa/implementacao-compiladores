@@ -192,7 +192,7 @@ main {
 
     print("\nTokenizando a entrada...")
     tokens = list(tokenize(code))
-    print("Tokens (Primeiros 120):", [(t.type, t.value) for t in tokens[:120]])
+    print("Tokens:", [(t.type, t.value) for t in tokens])
 
     # Exportação da Cadeia de Tokens
     export_tokens_to_txt(tokens, RESULTS_FOLDER)
